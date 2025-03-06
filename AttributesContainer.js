@@ -63,8 +63,9 @@ export default class AttributeContainer {
 	 */
 	addAttribute ( attributeName ) {
 		let name = attributeName;
-		while(this.#attributes.has(name)) {
-			name += "_";
+        let count = 0;
+		while( this.#attributes.has(name) ) {
+			name = `${attributeName}_${count++}`;
 		}
 
 		const attribute = new Attribute(name, this.#capacity);
@@ -116,9 +117,12 @@ export default class AttributeContainer {
 	}
 
 	/**
-	 * @returns {number} next empty index
+	 * @returns {number|undefined} next empty index
 	 */
 	#nextUnallocatedIndex ( ) {
+        if( this.#unallocatedIndices.size === 0 ) 
+            return undefined;
+
 		const index = this.#unallocatedIndices.values().next().value;
 		this.#unallocatedIndices.delete(index);
 		return index;
@@ -129,11 +133,10 @@ export default class AttributeContainer {
 	 * @returns {number} id of new initialized element
 	 */
 	newElement ( ) {
-		let id = this.#nextUnallocatedIndex();
-		id ??= this.#nextIndex++;
+		let id = this.#nextUnallocatedIndex() ?? this.#nextIndex++;
 		this.#refs[id] = 0;
 
-		if(this.#nextIndex == this.#capacity)
+		if( this.#nextIndex == this.#capacity )
 			this.#resize();
 
 		return id;
@@ -146,10 +149,13 @@ export default class AttributeContainer {
 	deleteElement ( index ) {
 		this.#refs[index] = -1;
 		
-		if(index == this.#nextIndex - 1) {
+		if( index == this.#nextIndex - 1 ) {
 			--this.#nextIndex;
-		}
-		else {
+            while( this.#unallocatedIndices.has(this.#nextIndex - 1)) {
+                this.#unallocatedIndices.delete(this.#nextIndex - 1);
+                --this.#nextIndex;
+            }
+		} else {
 			this.#unallocatedIndices.add(index);
 		}
 	}
@@ -167,7 +173,7 @@ export default class AttributeContainer {
 	#resize ( ) {
 		const capacityIncrease = 100;
 		this.#capacity += capacityIncrease;
-		for(const attribute of this.attributes()) {
+		for( const attribute of this.attributes() ) {
 			attribute.resize(this.#capacity);
 		}
 	}
@@ -182,10 +188,10 @@ export default class AttributeContainer {
 
 	/**
 	 * Decreases the reference count to given element index and deletes it if unreferenced
-	 * @param {index} index 
+	 * @param {number} index 
 	 */
 	unref ( index ) {
-		if(--this.#refs[index] == 0)
+		if( --this.#refs[index] == 0 )
 			this.deleteElement(index);
 	}
 
@@ -193,9 +199,9 @@ export default class AttributeContainer {
 	 * Resets the attribute container to initiale values
 	 */
 	clear ( ) {
-		for(const attribute of this.attributes()) {
-			this.removeAttribute(attribute);
-		}
+        for ( const attributeName of [...this.#attributes.keys()] ) {
+            this.removeAttribute(this.#attributes.get(name));
+        }
 
 		this.#initialize();
 	}
@@ -206,8 +212,8 @@ export default class AttributeContainer {
 	 * @yields {number} next element
 	 */
 	*elements ( ) {
-		for(let index = 0; index < this.#nextIndex; ++index) {
-			if(this.#refs[index] >= 0)
+		for ( let index = 0; index < this.#nextIndex; ++index ) {
+			if ( this.#refs[index] >= 0 )
 				yield index;
 		}
 	}
@@ -219,12 +225,9 @@ export default class AttributeContainer {
 	 * @returns {boolean}
 	 */
 	forEach ( func ) {
-		let broken = false;
-		for(let index = 0; index < this.#nextIndex; ++index) {
-			if(this.#refs[index] >= 0)
-				if(broken = func(index))
-					break;
+		for ( let index = 0; index < this.#nextIndex; ++index ) {
+			if ( this.#refs[index] >= 0 && func(index) )
+                return true;
 		}
-		return broken;
 	}
 }

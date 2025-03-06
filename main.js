@@ -12,15 +12,21 @@ import AttributesContainer from './AttributesContainer.js';
 import SceneDescriptor from './SceneDescriptor.js';
 
 
-const attributeContainer = new AttributesContainer();
-attributeContainer.addAttribute("test");
-attributeContainer.addAttribute("test");
-attributeContainer.addAttribute("test");
-attributeContainer.removeAttribute(attributeContainer.getOrAddAttribute("test"))
-let i = attributeContainer.newElement();
-attributeContainer.ref(i)
-attributeContainer.unref(i)
-console.log(attributeContainer.nbAttributes)
+// const attributeContainer = new AttributesContainer();
+// attributeContainer.addAttribute("test");
+// attributeContainer.addAttribute("test");
+// attributeContainer.addAttribute("test");
+// attributeContainer.removeAttribute(attributeContainer.getOrAddAttribute("test"))
+// let i = attributeContainer.newElement();
+// let i2 = attributeContainer.newElement();
+// let i3 = attributeContainer.newElement();
+// attributeContainer.deleteElement(i);
+// attributeContainer.deleteElement(i2);
+// attributeContainer.deleteElement(i3);
+
+// // attributeContainer.ref(i)
+// // attributeContainer.unref(i)
+// console.log(attributeContainer.nbAttributes)
 
 
 
