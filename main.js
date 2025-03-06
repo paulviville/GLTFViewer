@@ -8,6 +8,29 @@ import { MeshoptDecoder } from './three/libs/meshopt_decoder.module.js';
 import * as TextureUtils from './three/utils/WebGLTextureUtils.js';
 
 import SceneGraph from './SceneGraph.js';
+import AttributesContainer from './AttributesContainer.js';
+import SceneDescriptor from './SceneDescriptor.js';
+
+
+const attributeContainer = new AttributesContainer();
+attributeContainer.addAttribute("test");
+attributeContainer.addAttribute("test");
+attributeContainer.addAttribute("test");
+attributeContainer.removeAttribute(attributeContainer.getOrAddAttribute("test"))
+let i = attributeContainer.newElement();
+attributeContainer.ref(i)
+attributeContainer.unref(i)
+console.log(attributeContainer.nbAttributes)
+
+
+
+const sceneDescriptor = new SceneDescriptor();
+
+
+
+
+
+
 
 
 const scenegraph = new SceneGraph();
@@ -110,7 +133,8 @@ function loadSampleScene ( scene ) {
 		await renderer.compileAsync(model, camera, scene);
 
 		scene.add(model);
-		scenegraph.loadGLTF(gltf.parser.json);
+		// scenegraph.loadGLTF(gltf.parser.json);
+		sceneDescriptor.loadGLTF(gltf.parser.json)
 	});
 }
 

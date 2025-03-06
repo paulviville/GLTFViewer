@@ -97,8 +97,8 @@ export default class SceneGraph {
 
 	/// loads parsed json gltf
 	loadGLTF ( gltf ) {
-		console.log("SceneGraph - loadGLTF");
-		console.log(gltf);
+		// console.log("SceneGraph - loadGLTF");
+		// console.log(gltf);
 
 		for(const scene of gltf.scenes) {
 			console.log(scene);
@@ -107,7 +107,7 @@ export default class SceneGraph {
 			}
 		}
 
-		console.log(`roots: [${this.#roots}]`);
+		// console.log(`roots: [${this.#roots}]`);
 
 		/// creating the lights
 		const lights = gltf.extensions?.KHR_lights_punctual?.lights;
