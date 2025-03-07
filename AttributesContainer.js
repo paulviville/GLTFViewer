@@ -62,7 +62,7 @@ export default class AttributeContainer {
 	 * @returns {Attribute}
 	 */
 	addAttribute ( attributeName ) {
-		let name = attributeName;
+		let name = `${attributeName}`;
         let count = 0;
 		while( this.#attributes.has(name) ) {
 			name = `${attributeName}_${count++}`;
