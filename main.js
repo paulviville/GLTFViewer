@@ -11,25 +11,6 @@ import SceneGraph from './SceneGraph.js';
 import AttributesContainer from './AttributesContainer.js';
 import SceneDescriptor from './SceneDescriptor.js';
 
-
-// const attributeContainer = new AttributesContainer();
-// attributeContainer.addAttribute("test");
-// attributeContainer.addAttribute("test");
-// attributeContainer.addAttribute("test");
-// attributeContainer.removeAttribute(attributeContainer.getOrAddAttribute("test"))
-// let i = attributeContainer.newElement();
-// let i2 = attributeContainer.newElement();
-// let i3 = attributeContainer.newElement();
-// attributeContainer.deleteElement(i);
-// attributeContainer.deleteElement(i2);
-// attributeContainer.deleteElement(i3);
-
-// // attributeContainer.ref(i)
-// // attributeContainer.unref(i)
-// console.log(attributeContainer.nbAttributes)
-
-
-
 const sceneDescriptor = new SceneDescriptor();
 
 
@@ -39,7 +20,6 @@ const sceneDescriptor = new SceneDescriptor();
 
 
 
-const scenegraph = new SceneGraph();
 
 const stats = new Stats()
 document.body.appendChild( stats.dom );
@@ -125,9 +105,12 @@ console.log(sphere0)
 	scene.add(group);
 }
 
-// addHelpers(scene);
+addHelpers(scene);
 // createSampleScene(scene);
 // exportGLTF(scene.children);
+
+const objectList = new Map();
+const nodeList = new Map();
 
 function loadSampleScene ( scene ) {
 	const loader = new GLTFLoader()
@@ -135,16 +118,53 @@ function loadSampleScene ( scene ) {
 	loader.load(`./files/scene.gltf`, async function ( gltf ) {
 		console.log(gltf);
 		
-		const model = gltf.scene;
-		await renderer.compileAsync(model, camera, scene);
+		const root = gltf.scene;
+		await renderer.compileAsync(root, camera, scene);
 
-		scene.add(model);
+		scene.add(root);
+		console.log(root);
 		// scenegraph.loadGLTF(gltf.parser.json);
 		sceneDescriptor.loadGLTF(gltf.parser.json)
+		traverseScene(root, (object) => {
+			const objectData = {
+				object: object,
+				node: sceneDescriptor.getNode(object.name),
+			}
+			object.userData.node = sceneDescriptor.getNode(object.name);
+			objectList.set(object.name, objectData);
+			nodeList.set(sceneDescriptor.getNode(object.name), object);
+		});
+		console.log(objectList)
+		console.log(nodeList)
+		// root
+
+		const matTest = new THREE.Matrix4().makeTranslation(1, -3, 2);
+		const nodeTest = 5;
+		sceneDescriptor.setMatrix(nodeTest, matTest);
+		const objectTest = nodeList.get(nodeTest);
+		objectTest.matrixAutoUpdate = false;
+		objectTest.matrix.copy(sceneDescriptor.getMatrix(nodeTest));
 	});
 }
 
 loadSampleScene(scene)
+
+function traverseScene ( root, func = () => {} ) {
+	const objects = [...root.children];
+	for ( let i = 0; i < objects.length; ++i ) {
+		objects.push(...objects[i].children);
+		// objects[i]
+		func(objects[i]);
+
+	}
+	console.log(objects);
+}
+
+function setNodeData ( object ) {
+	const name = object.name;
+	const node = sceneDescriptor.getNode(name);
+	console.log(name, node)
+}
 
 
 function exportGLTF( group ) {
