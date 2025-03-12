@@ -6,6 +6,7 @@ import * as THREE from './three/three.module.js';
 //     #names = 
 // }
 
+
 export default class SceneDescriptor {
     // #nodeManager = new NodesManager();
     #nodeMap = new Map();
@@ -140,11 +141,27 @@ export default class SceneDescriptor {
         return this.#nodeMatrix[node].copyPosition(translation);
     }
 
-    // #removeParent ( node ) {
-    
-    // }
+    #removeParent ( node ) {
+        const parent = this.#nodeParent[node];
+        if( parent != -1 ) {
+            this.#nodeChildren[parent].delete(node); 
+            this.#nodeParent[node] = -1;
+            this.#roots.add(node);
+        }
+    }
 
-    // #setParent ( child, parent ) {
+    setParent ( child, parent ) {
+        this.#setParent(child, parent);
+    }
 
-    // }
+    #setParent ( child, parent ) {
+        if( this.#nodeParent[node] != -1 )
+            this.#removeParent(child);
+        
+        if( parent != -1 ) {
+            this.#roots.delete(child); 
+            this.#nodeParent[child] = parent;
+            this.#nodeChildren[parent].add(child);
+        } 
+    }
 }
