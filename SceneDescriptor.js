@@ -18,6 +18,7 @@ export default class SceneDescriptor {
     #nodeType = this.#nodes.addAttribute("type");
     #nodeData = this.#nodes.addAttribute("data");
     #roots = new Set();
+    // #locked = this.#nodes.addAttribute("locked");
 
     constructor ( ) {
 		console.log("SceneDescriptor - constructor");

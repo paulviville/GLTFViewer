@@ -10,6 +10,7 @@ import * as TextureUtils from './three/utils/WebGLTextureUtils.js';
 import SceneGraph from './SceneGraph.js';
 import AttributesContainer from './AttributesContainer.js';
 import SceneDescriptor from './SceneDescriptor.js';
+import SceneInterface from './SceneInterface.js';
 
 const sceneDescriptor = new SceneDescriptor();
 
@@ -24,21 +25,13 @@ const sceneDescriptor = new SceneDescriptor();
 const stats = new Stats()
 document.body.appendChild( stats.dom );
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xcccccc);
+const sceneInterface = new SceneInterface();
 
-const camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 100 );
-camera.position.set( -2, 3, -3 );
 
-const renderer = new THREE.WebGLRenderer({antialias: true});
-renderer.autoClear = false;
-renderer.setPixelRatio( window.devicePixelRatio );
-console.log(window.devicePixelRatio)
-renderer.setSize( window.innerWidth, window.innerHeight );
-console.log( window.innerWidth, window.innerHeight );
-document.body.appendChild( renderer.domElement );
 
-const orbitControls = new OrbitControls(camera, renderer.domElement);
+
+
+
 
 function addHelpers ( scene ) {
 	const axesHelper = new THREE.AxesHelper(10);
@@ -105,7 +98,7 @@ console.log(sphere0)
 	scene.add(group);
 }
 
-addHelpers(scene);
+addHelpers(sceneInterface.scene);
 // createSampleScene(scene);
 // exportGLTF(scene.children);
 
@@ -119,35 +112,39 @@ function loadSampleScene ( scene ) {
 		console.log(gltf);
 		
 		const root = gltf.scene;
-		await renderer.compileAsync(root, camera, scene);
+		await sceneInterface.renderer.compileAsync(root, sceneInterface.camera, scene);
 
 		scene.add(root);
 		console.log(root);
 		// scenegraph.loadGLTF(gltf.parser.json);
 		sceneDescriptor.loadGLTF(gltf.parser.json)
-		traverseScene(root, (object) => {
-			const objectData = {
-				object: object,
-				node: sceneDescriptor.getNode(object.name),
-			}
-			object.userData.node = sceneDescriptor.getNode(object.name);
-			objectList.set(object.name, objectData);
-			nodeList.set(sceneDescriptor.getNode(object.name), object);
-		});
-		console.log(objectList)
-		console.log(nodeList)
+		// traverseScene(root, (object) => {
+		// 	const objectData = {
+		// 		object: object,
+		// 		node: sceneDescriptor.getNode(object.name),
+		// 	}
+		// 	object.userData.node = sceneDescriptor.getNode(object.name);
+		// 	objectList.set(object.name, objectData);
+		// 	nodeList.set(sceneDescriptor.getNode(object.name), object);
+		// });
+		// console.log(objectList)
+		// console.log(nodeList)
 		// root
 
-		const matTest = new THREE.Matrix4().makeTranslation(1, -3, 2);
-		const nodeTest = 5;
-		sceneDescriptor.setMatrix(nodeTest, matTest);
-		const objectTest = nodeList.get(nodeTest);
-		objectTest.matrixAutoUpdate = false;
-		objectTest.matrix.copy(sceneDescriptor.getMatrix(nodeTest));
+		// const matTest = new THREE.Matrix4().makeTranslation(1, -3, 2);
+		// const nodeTest = 5;
+		// sceneDescriptor.setMatrix(nodeTest, matTest);
+		// const objectTest = nodeList.get(nodeTest);
+		// objectTest.matrixAutoUpdate = false;
+		// objectTest.matrix.copy(sceneDescriptor.getMatrix(nodeTest));
 	});
 }
 
-loadSampleScene(scene)
+// loadSampleScene(sceneInterface.scene)
+
+const gltf = await sceneInterface.loadFile(`./files/scene.gltf`)
+console.log(gltf)
+
 
 function traverseScene ( root, func = () => {} ) {
 	const objects = [...root.children];
@@ -215,18 +212,18 @@ function saveArrayBuffer ( buffer, filename ) {
 
 
 
-window.addEventListener('resize', function() {
-	const width = window.innerWidth;
-	const height = window.innerHeight;
-	camera.aspect = width / height;
-	camera.updateProjectionMatrix();
-});
+// window.addEventListener('resize', function() {
+// 	const width = window.innerWidth;
+// 	const height = window.innerHeight;
+// 	camera.aspect = width / height;
+// 	camera.updateProjectionMatrix();
+// });
 
 
 
 function animate() {
-    renderer.render( scene, camera );
+    sceneInterface.renderer.render( sceneInterface.scene, sceneInterface.camera );
     stats.update()
 }
 
-renderer.setAnimationLoop( animate );
+sceneInterface.renderer.setAnimationLoop( animate );
