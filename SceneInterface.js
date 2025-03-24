@@ -12,6 +12,8 @@ export default class SceneInterface {
 
 
     constructor ( ) {
+		console.log("SceneInterface - constructor");
+
         this.#scene = new THREE.Scene();
         this.#scene.background = new THREE.Color(0xcccccc);
         this.#camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 100 );
@@ -23,6 +25,7 @@ export default class SceneInterface {
         
         document.body.appendChild( this.#renderer.domElement );
         this.#orbitControls = new OrbitControls( this.#camera, this.#renderer.domElement);
+    
     }
 
     async loadFile ( filePath ) {
@@ -31,7 +34,8 @@ export default class SceneInterface {
 			loader.load(filePath, ( gltf ) => {
 				const root = gltf.scene;
 				this.#scene.add(root);
-				resolve(gltf);
+                this.#mapObjects();
+                resolve(gltf);
 			});
 		});
     }
@@ -49,6 +53,26 @@ export default class SceneInterface {
 			);
 		});
 		console.log(this.#objectsMap)
+    }
+
+    #mapObjects ( ) {
+		const root = this.#scene.children[0];
+		console.log(root);
+		this.#traverseScene( root, ( object ) => {
+			this.#objectsMap.set(
+				object.name,
+				object
+			);
+		});
+		console.log(this.#objectsMap)
+    }
+
+    get objectsMap ( ) {
+        return new Map(this.#objectsMap);
+    }
+    
+    getObject ( name ) {
+        return this.#objectsMap.get(name);
     }
 
 	#traverseScene ( root, func ) {
@@ -71,5 +95,9 @@ export default class SceneInterface {
 
     get camera ( ) {
         return this.#camera;
+    }
+
+    get controls ( ) {
+        return this.#orbitControls;
     }
 }

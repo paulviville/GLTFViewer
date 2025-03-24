@@ -1,12 +1,6 @@
 import AttributesContainer from "./AttributesContainer.js";
 import * as THREE from './three/three.module.js';
 
-// class NodesManager {
-//     #nodes = new AttributesContainer();
-//     #names = 
-// }
-
-
 export default class SceneDescriptor {
     // #nodeManager = new NodesManager();
     #nodeMap = new Map();
@@ -141,9 +135,19 @@ export default class SceneDescriptor {
         return this.#nodeMatrix[node].clone();
     }
 
+    getWorldMatrix ( node ) {
+        const matrix = this.getMatrix(node);
+        let parent = this.#nodeParent[node];
+        while( parent != -1 ) {
+            matrix.premultiply(this.getMatrix(parent));
+            parent = this.#nodeParent[parent];
+        }
+        return matrix;
+    }
+
     getTranslation ( node ) {
         const translation = new THREE.Matrix4();
-        return this.#nodeMatrix[node].copyPosition(translation);
+        return translation.copyPosition(this.#nodeMatrix[node]);
     }
 
     #removeParent ( node ) {

@@ -11,6 +11,7 @@ import SceneGraph from './SceneGraph.js';
 import AttributesContainer from './AttributesContainer.js';
 import SceneDescriptor from './SceneDescriptor.js';
 import SceneInterface from './SceneInterface.js';
+import SceneController from './SceneController.js';
 
 const sceneDescriptor = new SceneDescriptor();
 
@@ -144,29 +145,52 @@ function loadSampleScene ( scene ) {
 const gltf = await sceneInterface.loadFile(`./files/scene.gltf`);
 console.log(gltf)
 sceneDescriptor.loadGLTF(gltf.parser.json);
-const nodeMap = sceneDescriptor.nodeMap;
-console.log(nodeMap);
-sceneInterface.mapObjectsToNodes(nodeMap);
 
-addHelpers(sceneInterface.scene);
+const sceneController = new SceneController(sceneInterface, sceneDescriptor);
+console.log(sceneController);
 
 
-function traverseScene ( root, func = () => {} ) {
-	const objects = [...root.children];
-	for ( let i = 0; i < objects.length; ++i ) {
-		objects.push(...objects[i].children);
-		// objects[i]
-		func(objects[i]);
 
-	}
-	console.log(objects);
+
+
+const keyHeld = {};
+const defaultKeyDown = function(event){
+	keyHeld[event.code] = true;
+};
+
+const defaultKeyUp = function(event){
+	console.log(event.which, event.code, event.charCode);
+	switch(event.code) {
+		case "Escape": 
+			break;
+		case "Space":
+			break;
+		case "Delete":
+			break;
+		case "KeyR":
+			sceneController.setTransformToolMode('rotate')
+			break;
+		case "KeyL":
+			sceneController.setTransformToolSpace('local')
+			break;
+		case "KeyT":
+			sceneController.setTransformToolMode('translate')
+			break;
+		case "KeyZ":
+			sceneController.setTransformToolSpace('world')
+			break;
+		case "Numpad0":
+			break;
+		case "ArrowRight":
+			break;
+	};
+
+	keyHeld[event.code] = false;
+
 }
 
-function setNodeData ( object ) {
-	const name = object.name;
-	const node = sceneDescriptor.getNode(name);
-	console.log(name, node)
-}
+window.addEventListener("keydown", defaultKeyDown);
+window.addEventListener("keyup", defaultKeyUp);
 
 
 function exportGLTF( group ) {
