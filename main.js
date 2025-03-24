@@ -98,7 +98,6 @@ console.log(sphere0)
 	scene.add(group);
 }
 
-addHelpers(sceneInterface.scene);
 // createSampleScene(scene);
 // exportGLTF(scene.children);
 
@@ -142,8 +141,14 @@ function loadSampleScene ( scene ) {
 
 // loadSampleScene(sceneInterface.scene)
 
-const gltf = await sceneInterface.loadFile(`./files/scene.gltf`)
+const gltf = await sceneInterface.loadFile(`./files/scene.gltf`);
 console.log(gltf)
+sceneDescriptor.loadGLTF(gltf.parser.json);
+const nodeMap = sceneDescriptor.nodeMap;
+console.log(nodeMap);
+sceneInterface.mapObjectsToNodes(nodeMap);
+
+addHelpers(sceneInterface.scene);
 
 
 function traverseScene ( root, func = () => {} ) {

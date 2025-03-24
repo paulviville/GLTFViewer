@@ -129,6 +129,10 @@ export default class SceneDescriptor {
         return this.#nodeMap.get(name);
     }
 
+	get nodeMap ( ) {
+		return new Map(this.#nodeMap);
+	}
+
     setMatrix ( node, matrix ) {
         this.#nodeMatrix[node].copy(matrix);
     }

@@ -8,7 +8,7 @@ export default class SceneInterface {
     #camera;
     #orbitControls;
 
-    #nodeList = new Map();
+    #objectsMap = new Map();
 
 
     constructor ( ) {
@@ -27,26 +27,39 @@ export default class SceneInterface {
 
     async loadFile ( filePath ) {
 	    const loader = new GLTFLoader();
-        let parsedScene;
-        const scene = this.#scene;
-        const camera = this.#camera;
-        const renderer = this.#renderer;
-        loader.load(`./files/scene.gltf`, async function ( gltf ) {
-            console.log(gltf);
-            parsedScene = gltf;
-            const root = gltf.scene;
-		    await renderer.compileAsync(root, camera, scene);
-            
-            scene.add(root);
-            console.log(root);
-        });
-
-        return parsedScene;
+		return new Promise (( resolve ) => {	
+			loader.load(filePath, ( gltf ) => {
+				const root = gltf.scene;
+				this.#scene.add(root);
+				resolve(gltf);
+			});
+		});
     }
 
-    syncScene ( sceneDescriptor ) {
-
+    mapObjectsToNodes ( nodeMap ) {
+		const root = this.#scene.children[0];
+		console.log(root);
+		this.#traverseScene( root, ( object ) => {
+			this.#objectsMap.set(
+				object.name,
+				{
+					object: object,
+					node: nodeMap.get(object.name),
+				}
+			);
+		});
+		console.log(this.#objectsMap)
     }
+
+	#traverseScene ( root, func ) {
+		console.log(root)
+		const objects = [...root.children];
+		for ( let i = 0; i < objects.length; ++i ) {
+			objects.push(...objects[i].children);
+			func(objects[i]);
+		}
+		console.log(objects);
+	}
 
     get scene ( ) {
         return this.#scene;
