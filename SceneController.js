@@ -61,6 +61,9 @@ export default class SceneController {
             return;
         }
 
+
+
+
         console.log(name)
         const object = this.#sceneInterface.getObject(name);
         const node = this.#sceneDescriptor.getNode(name);
@@ -70,16 +73,26 @@ export default class SceneController {
 
         // this.#transformDummy
         const matrix = this.#sceneDescriptor.getMatrix(node)
+        const worldMatrix = this.#sceneDescriptor.getWorldMatrix(node)
         const translation = new THREE.Vector3();
         const rotation = new THREE.Quaternion();
         const scale = new THREE.Vector3();
-        matrix.decompose(translation, rotation, scale);
-        console.log(translation, rotation, scale);
+        worldMatrix.decompose(translation, rotation, scale);
+
+        const translation0 = new THREE.Vector3();
+        const rotation0 = new THREE.Quaternion();
+        const scale0 = new THREE.Vector3();
+        matrix.decompose(translation0, rotation0, scale0);
+
         this.#transformDummy.position.copy(translation)
         this.#transformDummy.rotation.copy(rotation)
         this.#transformDummy.scale.copy(scale)
         this.#sceneInterface.scene.add(this.#transformControls.getHelper());
 
+        const parentMatrix = matrix.clone().invert().premultiply(worldMatrix);
+        const invParentMatrix = parentMatrix.clone().invert();
+
+        console.log(parentMatrix, invParentMatrix, worldMatrix, matrix)
         this.#target = {
             object,
             node,
@@ -87,6 +100,9 @@ export default class SceneController {
             rotation,
             scale,
             matrix,
+            worldMatrix,
+            parentMatrix,
+            invParentMatrix,
         }
     }
 
@@ -110,17 +126,31 @@ export default class SceneController {
 
     #onTransformChange ( ) {
         if(this.#transformControls.dragging) {
-            console.log(this.#transformDummy.quaternion)
-            this.#target.object.position.copy(this.#transformDummy.position);
-            this.#target.object.quaternion.copy(this.#transformDummy.quaternion);
+            // console.log(this.#transformDummy.quaternion)
+
+            // this.#target.translation.copy(this.#transformDummy.position);
+            // this.#target.rotation.copy(this.#transformDummy.quaternion);
+            // this.#target.scale.copy(this.#transformDummy.scale);
+            // this.#target.matrix.compose(this.#target.translation, this.#target.rotation, this.#target.scale);
+            
+            const dummyWorldMatrix = new THREE.Matrix4();
+            dummyWorldMatrix.compose(this.#transformDummy.position,this.#transformDummy.quaternion, this.#transformDummy.scale)
+            const localMatrix = this.#target.invParentMatrix.clone().multiply(dummyWorldMatrix);
+            localMatrix.decompose(this.#target.translation, this.#target.rotation, this.#target.scale)
+            this.#target.object.position.copy(this.#target.translation);
+            this.#target.object.quaternion.copy(this.#target.rotation);
             this.#boxHelper.update();
 
-            this.#target.translation.copy(this.#transformDummy.position);
-            this.#target.rotation.copy(this.#transformDummy.quaternion);
-            this.#target.scale.copy(this.#transformDummy.scale);
-            this.#target.matrix.compose(this.#target.translation, this.#target.rotation, this.#target.scale);
-            
-            this.#sceneDescriptor.setMatrix(this.#target.node, this.#target.matrix);
+            // this.#sceneDescriptor.setMatrix(this.#target.node, this.#target.matrix);
+            this.#sceneDescriptor.setMatrix(this.#target.node, localMatrix);
         }
+    }
+
+    #synchronizeMatrixToDescriptor ( node, matrix ) {
+
+    }
+
+    #synchronizeMatrixFromDescriptor ( ) {
+
     }
 }

@@ -149,7 +149,7 @@ sceneDescriptor.loadGLTF(gltf.parser.json);
 const sceneController = new SceneController(sceneInterface, sceneDescriptor);
 console.log(sceneController);
 
-
+addHelpers(sceneInterface.scene)
 
 
 
