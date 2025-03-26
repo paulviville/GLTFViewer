@@ -12,7 +12,10 @@ export default class SceneDescriptor {
     #nodeType = this.#nodes.addAttribute("type");
     #nodeData = this.#nodes.addAttribute("data");
     #roots = new Set();
-    // #locked = this.#nodes.addAttribute("locked");
+    /// 0 -> unlocked
+    /// 1 -> locked or parent locked
+    /// x < 0 -> x children locked
+    #locked = this.#nodes.addAttribute("locked");
 
     constructor ( ) {
 		console.log("SceneDescriptor - constructor");
@@ -26,19 +29,11 @@ export default class SceneDescriptor {
 			const node = this.#addNode(nodeData);
 		}
 
-        // this.#addNode({
-        //     name: "sphere0_parent",
-        //     children: [2],
-        //     parent: 4
-        // })
-
-
-        // console.log(this.#roots)
-
         this.#nodes.forEach(node => {
             this.#setParentage(node);
         });
 
+        this.#unlockAllNodes();
 
         this.#nodes.forEach(node => {
             console.log(
@@ -49,9 +44,9 @@ export default class SceneDescriptor {
                 this.#nodeType[node], 
                 this.#nodeData[node],
                 this.#nodeMatrix[node],
+                this.#locked[node],
             );
         });
-
     }
 
     #addNode ( nodeData ) {
@@ -137,11 +132,9 @@ export default class SceneDescriptor {
 
     getWorldMatrix ( node ) {
         const matrix = this.getMatrix(node);
-        let parent = this.#nodeParent[node];
-        while( parent != -1 ) {
+        this.#forAllParents(node, parent => {
             matrix.premultiply(this.getMatrix(parent));
-            parent = this.#nodeParent[parent];
-        }
+        });
         return matrix;
     }
 
@@ -172,5 +165,67 @@ export default class SceneDescriptor {
             this.#nodeParent[child] = parent;
             this.#nodeChildren[parent].add(child);
         } 
+    }
+
+    #forAllParents ( node, func ) {
+        let parent = this.#nodeParent[node];
+        while( parent != -1 ) {
+            func(parent);
+            parent = this.#nodeParent[parent];
+        }
+    }
+
+    #forAllChildren ( node, func ) {
+        const children = [...this.#nodeChildren[node]];
+        for( let i = 0; i < children.length; ++i ) {
+            const child = children[i];
+            func(child);
+            children.push(...this.#nodeChildren[child])
+        }
+    }
+
+    #lockBranch ( node ) {
+        this.#locked[node] = 1;
+        
+        this.#forAllParents(node, parent => {
+            this.#locked[parent] -= 1; 
+        });
+
+        this.#forAllChildren(node, child => {
+            this.#locked[child] = 1; 
+        });
+    }
+
+    #unlockBranch ( node ) {
+        this.#locked[node] = 0;
+        
+        this.#forAllParents(node, parent => {
+            this.#locked[parent] += 1; 
+        });
+
+        this.#forAllChildren(node, child => {
+            this.#locked[child] = 0; 
+        });
+    }
+    
+    #unlockAllNodes ( ) {
+        this.#nodes.forEach(node => {
+            this.#locked[node] = 0;
+        });
+    }
+
+    selectNode ( node ) {
+        console.log(`SceneDescriptor - selectNode - ${node}`);
+        if ( this.#locked[node] != 0 )
+            return false;
+
+        this.#lockBranch(node);
+        console.log(this.#locked)
+        return true;
+    }
+
+    deselectNode ( node ) {
+        console.log(`SceneDescriptor - deselectNode - ${node}`);
+        this.#unlockBranch(node);
     }
 }

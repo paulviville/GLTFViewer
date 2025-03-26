@@ -12,6 +12,7 @@ import AttributesContainer from './AttributesContainer.js';
 import SceneDescriptor from './SceneDescriptor.js';
 import SceneInterface from './SceneInterface.js';
 import SceneController from './SceneController.js';
+import SceneSynchronizer from './SceneSynchronizer.js';
 
 const sceneDescriptor = new SceneDescriptor();
 
@@ -145,8 +146,8 @@ function loadSampleScene ( scene ) {
 const gltf = await sceneInterface.loadFile(`./files/scene.gltf`);
 console.log(gltf)
 sceneDescriptor.loadGLTF(gltf.parser.json);
-
-const sceneController = new SceneController(sceneInterface, sceneDescriptor);
+const sceneSynchronizer = new SceneSynchronizer(sceneInterface, sceneDescriptor);
+const sceneController = new SceneController(sceneInterface, sceneSynchronizer);
 console.log(sceneController);
 
 addHelpers(sceneInterface.scene)
@@ -168,16 +169,19 @@ const defaultKeyUp = function(event){
 		case "Delete":
 			break;
 		case "KeyR":
-			sceneController.setTransformToolMode('rotate')
+			sceneController.setTransformToolMode('rotate');
 			break;
 		case "KeyL":
-			sceneController.setTransformToolSpace('local')
+			sceneController.setTransformToolSpace('local');
 			break;
 		case "KeyT":
-			sceneController.setTransformToolMode('translate')
+			sceneController.setTransformToolMode('translate');
+			break;
+		case "KeyS":
+			sceneController.setTransformToolMode('scale');
 			break;
 		case "KeyZ":
-			sceneController.setTransformToolSpace('world')
+			sceneController.setTransformToolSpace('world');
 			break;
 		case "Numpad0":
 			break;
