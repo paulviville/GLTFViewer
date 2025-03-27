@@ -13,8 +13,8 @@ import SceneDescriptor from './SceneDescriptor.js';
 import SceneInterface from './SceneInterface.js';
 import SceneController from './SceneController.js';
 import SceneSynchronizer from './SceneSynchronizer.js';
+import MessageHandler from './MessageHandler.js';
 
-const sceneDescriptor = new SceneDescriptor();
 
 
 
@@ -28,6 +28,7 @@ const stats = new Stats()
 document.body.appendChild( stats.dom );
 
 const sceneInterface = new SceneInterface();
+const sceneDescriptor = new SceneDescriptor();
 
 
 
@@ -103,44 +104,6 @@ console.log(sphere0)
 // createSampleScene(scene);
 // exportGLTF(scene.children);
 
-const objectList = new Map();
-const nodeList = new Map();
-
-function loadSampleScene ( scene ) {
-	const loader = new GLTFLoader()
-	// loader.setPath("./files/")
-	loader.load(`./files/scene.gltf`, async function ( gltf ) {
-		console.log(gltf);
-		
-		const root = gltf.scene;
-		await sceneInterface.renderer.compileAsync(root, sceneInterface.camera, scene);
-
-		scene.add(root);
-		console.log(root);
-		// scenegraph.loadGLTF(gltf.parser.json);
-		sceneDescriptor.loadGLTF(gltf.parser.json)
-		// traverseScene(root, (object) => {
-		// 	const objectData = {
-		// 		object: object,
-		// 		node: sceneDescriptor.getNode(object.name),
-		// 	}
-		// 	object.userData.node = sceneDescriptor.getNode(object.name);
-		// 	objectList.set(object.name, objectData);
-		// 	nodeList.set(sceneDescriptor.getNode(object.name), object);
-		// });
-		// console.log(objectList)
-		// console.log(nodeList)
-		// root
-
-		// const matTest = new THREE.Matrix4().makeTranslation(1, -3, 2);
-		// const nodeTest = 5;
-		// sceneDescriptor.setMatrix(nodeTest, matTest);
-		// const objectTest = nodeList.get(nodeTest);
-		// objectTest.matrixAutoUpdate = false;
-		// objectTest.matrix.copy(sceneDescriptor.getMatrix(nodeTest));
-	});
-}
-
 // loadSampleScene(sceneInterface.scene)
 
 const gltf = await sceneInterface.loadFile(`./files/scene.gltf`);
@@ -190,7 +153,6 @@ const defaultKeyUp = function(event){
 	};
 
 	keyHeld[event.code] = false;
-
 }
 
 window.addEventListener("keydown", defaultKeyDown);
@@ -260,3 +222,22 @@ function animate() {
 }
 
 sceneInterface.renderer.setAnimationLoop( animate );
+
+const features = "width=800, height=800, left=0, top=0";
+const secondaryWindow = window.open("index2.html", '', features);
+// const secondaryWindow = window.open("index2.html");
+window.addEventListener("beforeunload", () => {
+	secondaryWindow.close();
+});
+secondaryWindow.addEventListener("load", () => {
+    secondaryWindow.postMessage("child-ready", "*");
+});
+
+// secondaryWindow.postMessage("test")
+window.messageWindow = function ( message ) {
+    secondaryWindow.postMessage(message);
+
+}
+
+const messageHandler = new MessageHandler(secondaryWindow);
+messageHandler.setSynchronizer(sceneSynchronizer);

@@ -31,7 +31,7 @@ export default class SceneController {
         this.#transformControls.addEventListener('change', (event) => {
             this.#onTransformChange();
         });
-
+        this.#transformControls.enabled = false;
         this.#sceneInterface.scene.add(this.#transformDummy);
     }   
 
@@ -58,21 +58,17 @@ export default class SceneController {
         }
         this.#guiParams.previouslySelected  = name;
 
-        const object = this.#sceneSynchronizer.getObject(name);
-        this.#boxHelper = new THREE.BoxHelper(object);
-        this.#sceneInterface.scene.add(this.#boxHelper);
-
         const matrix = this.#sceneSynchronizer.getMatrix(name);
         const worldMatrix = this.#sceneSynchronizer.getWorldMatrix(name)
         worldMatrix.decompose(this.#transformDummy.position, this.#transformDummy.rotation, this.#transformDummy.scale);
 
         this.#sceneInterface.scene.add(this.#transformControls.getHelper());
+        this.#transformControls.enabled = true;
 
         const invParentMatrix = matrix.clone().invert().premultiply(worldMatrix).invert();
 
         this.#target = {
             name,
-            object,
             matrix,
             worldMatrix,
             invParentMatrix,
@@ -88,6 +84,7 @@ export default class SceneController {
         this.#sceneSynchronizer.releaseControl(name);
 
         this.#sceneInterface.scene.remove(this.#boxHelper);
+        this.#transformControls.enabled = false;
         
     }
 
@@ -104,7 +101,6 @@ export default class SceneController {
             const dummyWorldMatrix = new THREE.Matrix4();
             dummyWorldMatrix.compose(this.#transformDummy.position,this.#transformDummy.quaternion, this.#transformDummy.scale)
             const localMatrix = this.#target.invParentMatrix.clone().multiply(dummyWorldMatrix);
-            this.#boxHelper.update();
             this.#sceneSynchronizer.setMatrix(this.#target.name, localMatrix);
         }
     }

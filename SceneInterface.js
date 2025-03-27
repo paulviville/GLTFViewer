@@ -9,6 +9,7 @@ export default class SceneInterface {
     #orbitControls;
 
     #objectsMap = new Map();
+    #boxMap = new Map();
 
 
     constructor ( ) {
@@ -29,33 +30,21 @@ export default class SceneInterface {
     }
 
     async loadFile ( filePath ) {
+		console.log("SceneInterface - loadFile");
 	    const loader = new GLTFLoader();
 		return new Promise (( resolve ) => {	
 			loader.load(filePath, ( gltf ) => {
 				const root = gltf.scene;
 				this.#scene.add(root);
                 this.#mapObjects();
+                this.#addBoxHelpers();
                 resolve(gltf);
 			});
 		});
     }
 
-    mapObjectsToNodes ( nodeMap ) {
-		const root = this.#scene.children[0];
-		console.log(root);
-		this.#traverseScene( root, ( object ) => {
-			this.#objectsMap.set(
-				object.name,
-				{
-					object: object,
-					node: nodeMap.get(object.name),
-				}
-			);
-		});
-		console.log(this.#objectsMap)
-    }
-
     #mapObjects ( ) {
+		console.log("SceneInterface - #mapObjects");
 		const root = this.#scene.children[0];
 		console.log(root);
 		this.#traverseScene( root, ( object ) => {
@@ -76,14 +65,42 @@ export default class SceneInterface {
     }
 
 	#traverseScene ( root, func ) {
-		console.log(root)
 		const objects = [...root.children];
 		for ( let i = 0; i < objects.length; ++i ) {
 			objects.push(...objects[i].children);
 			func(objects[i]);
 		}
-		console.log(objects);
 	}
+
+    #addBoxHelpers ( ) {
+		console.log("SceneInterface - #addBoxHelpers");
+        this.#objectsMap.forEach((object, objectName) => {
+            const boxHelper = new THREE.BoxHelper(object);
+            boxHelper.visible = false;
+            this.#scene.add(boxHelper);
+
+            this.#boxMap.set(objectName, boxHelper);
+        })
+    }
+
+    setMatrix ( objectName, matrix ) {
+        const object = this.getObject(objectName);
+        matrix.decompose(object.position, object.quaternion, object.scale);
+        
+        const boxHelper = this.#boxMap.get(objectName);
+        boxHelper.update();
+    }
+
+    showBoxHelper ( objectName ) {
+        const boxHelper = this.#boxMap.get(objectName);
+        boxHelper.visible = true;
+        boxHelper.update();
+    }
+
+    hideBoxHelper ( objectName ) {
+        const boxHelper = this.#boxMap.get(objectName);
+        boxHelper.visible = false;
+    }
 
     get scene ( ) {
         return this.#scene;

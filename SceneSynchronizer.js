@@ -3,11 +3,17 @@ import * as THREE from './three/three.module.js';
 export default class SceneSynchronizer {
     #sceneDescriptor;
     #sceneInterface;
+    #messageHandler;
 
     constructor ( sceneInterface, sceneDescriptor ) {
 		console.log("SceneSynchronizer - constructor");
         this.#sceneDescriptor = sceneDescriptor;
         this.#sceneInterface = sceneInterface;
+    }
+
+    setMessageHandler ( messageHandler ) {
+		console.log("SceneSynchronizer - setMessageHandler");
+        this.#messageHandler = messageHandler;
     }
 
     getObjectsList ( ) {
@@ -18,14 +24,13 @@ export default class SceneSynchronizer {
         return this.#sceneDescriptor.getMatrix(this.#sceneDescriptor.getNode(name));
     }
 
-    setMatrix ( name, matrix, emit = false ) {
+    setMatrix ( name, matrix, emit = true ) {
         this.#sceneDescriptor.setMatrix(this.#sceneDescriptor.getNode(name), matrix);
-
-        const object = this.getObject(name);
-        matrix.decompose(object.position, object.quaternion, object.scale);
+        console.log(matrix)
+        this.#sceneInterface.setMatrix(name, matrix);
 
         if( emit ) {
-            /// messaging logic
+            this.emitMessage({type: "matrix", name: name, matrix: matrix});
         }
     }
 
@@ -37,25 +42,53 @@ export default class SceneSynchronizer {
         return this.#sceneInterface.getObject(name);
     }
 
-    requestControl ( name ) {
+    requestControl ( name, emit = true ) {
         const accepted = this.#sceneDescriptor.selectNode(this.#sceneDescriptor.getNode(name));
         
-        /// messaging logic
+        if( accepted ) {
+            this.#sceneInterface.showBoxHelper(name);
+            if( emit ) {
+                this.emitMessage({type: "select", name: name})
+            }
+        }
 
         return accepted;
     }
 
-    releaseControl ( name ) {
+    releaseControl ( name, emit = true ) {
         this.#sceneDescriptor.deselectNode(this.#sceneDescriptor.getNode(name));
- 
-        /// messaging logic
+        this.#sceneInterface.hideBoxHelper(name);
+
+        if( emit ) {
+            this.emitMessage({type: "deselect", name: name})
+        }
     }
 
-    receiveMessage ( message ) {
-        /// message handling logic
+    receiveMessage ( data ) {
+        console.log(data);
+        const type = data.type;
+        const name = data.name;
+
+        switch ( type ) {
+            case "select":
+                this.requestControl(name, false);
+                break;
+            case "deselect":
+                this.releaseControl(name, false);
+                break;
+            case "matrix":
+                const matrix = new THREE.Matrix4().fromArray(data.matrix.elements);
+                this.setMatrix(name, matrix, false);
+                break;
+            default:
+                console.log("unknown message type");
+                break;
+        }
     }
 
     emitMessage ( data ) {
+        console.log(data);
+        this.#messageHandler.emitMessage(data);
         /// message emitting logic
     }
 }
